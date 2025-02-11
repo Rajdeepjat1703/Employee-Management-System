@@ -9,11 +9,14 @@ import com.employee.EmployeeManagementSystem.Repository.EmployeeRepository;
 import com.employee.EmployeeManagementSystem.Repository.ProjectRepository;
 import com.employee.EmployeeManagementSystem.Repository.SkillRepository;
 import com.employee.EmployeeManagementSystem.SkillNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+@Service
 @Slf4j
 public class EmployeeService {
     @Autowired
@@ -26,7 +29,7 @@ public class EmployeeService {
     private ProjectRepository projectRepository;
 
     @Autowired
-    private RedisTemplate<String, Employee> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     private static final String EMPLOYEE_CACHE = "EmployeeCache";
 
@@ -54,7 +57,8 @@ public class EmployeeService {
 
     public Employee getEmployeeById(Long id) {
         log.info("Fetching employee with ID: {}", id);
-        Employee employee = (Employee) redisTemplate.opsForHash().get(EMPLOYEE_CACHE, id);
+        Employee employee = (Employee) redisTemplate.opsForHash().get(EMPLOYEE_CACHE, String.valueOf(id));
+
         if (employee == null) {
             employee = employeeRepository.findById(id)
                     .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + id));
@@ -62,7 +66,7 @@ public class EmployeeService {
         }
         return employee;
     }
-
+@Transactional
     public Employee addSkillToEmployee(Long employeeId, Long skillId) {
         log.info("Adding skill with ID: {} to employee with ID: {}", skillId, employeeId);
         Employee employee = getEmployeeById(employeeId);
@@ -71,7 +75,7 @@ public class EmployeeService {
         employee.getSkills().add(skill);
         return employeeRepository.save(employee);
     }
-
+@Transactional
     public Employee assignProjectToEmployee(Long employeeId, Long projectId) {
         log.info("Assigning project with ID: {} to employee with ID: {}", projectId, employeeId);
         Employee employee = getEmployeeById(employeeId);

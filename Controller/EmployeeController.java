@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @Slf4j
+@RestController
 public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
@@ -55,4 +56,5 @@ public class EmployeeController {
         log.info("Received request to fetch all employees");
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
+
 }
